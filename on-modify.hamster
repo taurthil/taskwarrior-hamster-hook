@@ -14,19 +14,24 @@ import shutil
 old_task = json.loads(sys.stdin.readline())
 mod_task = json.loads(sys.stdin.readline())
 
+task_id = old_task["jiraid"]
 proj = None
 tags = None
+desc = None
 
-desc = old_task["description"]
 if "project" in old_task:
     proj = old_task["project"]
 if "tags" in old_task:
     tags = old_task["tags"]
 
-# Ubuntu, Debian
+
+if "jirasummary" in old_task:
+    desc = old_task["jirasummary"]
+
+# Old wersion
 hamster_cli = shutil.which("hamster-cli")
 if not hamster_cli:
-    # Fedora
+    # New Wersion
     hamster_cli = shutil.which("hamster")
 if not hamster_cli:
     # No executable found, exiting
@@ -34,6 +39,10 @@ if not hamster_cli:
           "No executable found for hamster-cli. Exiting")
     sys.exit(1)
 
+def project_name_resolver(tags):
+    for tag in tags:
+        if "YD" in tag:
+            tag = 'Yale Development'
 
 def hamster_specialchars(input_str):
     # Escape hamster-cli special chars, there doesn't seem to be a better way
@@ -41,9 +50,11 @@ def hamster_specialchars(input_str):
 
 # "start" command used
 if ('start' not in old_task and 'start' in mod_task):
-    cmd_arg = '{}'.format(hamster_specialchars(desc))
+    cmd_arg = '{}'.format(hamster_specialchars(task_id))
     if proj:
         cmd_arg += '@{}'.format(hamster_specialchars(proj))
+    if desc:
+        cmd_arg += ',,{}'.format(hamster_specialchars(desc))
     if tags:
         cmd_arg += ', '
         for t in tags:
